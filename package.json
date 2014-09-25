@@ -1,0 +1,9 @@
+{
+  "name": "process_logger",
+  "version": "0.0.1",
+  "dependencies": {
+      "iconv-lite": "*"
+  }
+}
+
+
