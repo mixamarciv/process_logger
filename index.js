@@ -25,17 +25,23 @@ function process_logger(p,fn) {
   var show_time_in_log = 1;
   log._write = function(chunk, enc, next){ 
       if(++i_call == 1 || !show_time_in_log) return log._write_old.apply(this,arguments);  //первый кусок почему то вызывается по 2 раза
+      var i_call0 = i_call - 1;
       var str = chunk.toString();
-      process.stdout.write(str);  //выводим в консоль то что получили..
-      str = prepare_str_to_log(str,i_call-1);
+      if(isFunction(p.on_data)){
+          //process.stdout.write(str);  //выводим в консоль то что получили..
+          p.on_data(str,i_call0);
+      }
+      str = prepare_str_to_log(str,i_call0);
       
       arguments[0] = new Buffer(str, p.enc); //заменяем строку для записи на новую
       log._write_old.apply(this,arguments);
   }
-
-  var util = require('util');  
-  log.write('\nstart app:'+p.run+' log:'+p.log+' args:'+util.inspect(p.args)+'\n');
   
+  log.write('\n');
+  if (p.debug) {
+    var util = require('util');  
+    log.write('\nstart app:'+p.run+' log:'+p.log+' args:'+util.inspect(p.args)+'\n');
+  }
 
   var spawn = require('child_process').spawn;
   var pr = spawn(p.run, p.args);
@@ -53,7 +59,7 @@ function process_logger(p,fn) {
   pr.stderr.pipe(log,{ end: false });
   
   pr.on('close', function (code) {
-    log.write('\nexit code: '+code);
+    if (p.debug) log.write('\nexit code: '+code);
     log.end();
     fn(0,code);
   });
@@ -62,6 +68,12 @@ function process_logger(p,fn) {
     log.write('\nERROR: '+util.inspect(err));
   });
 
+}
+
+//http://stackoverflow.com/questions/5999998/how-can-i-check-if-a-javascript-variable-is-function-type
+function isFunction(functionToCheck) {
+  var getType = {};
+  return functionToCheck && getType.toString.call(functionToCheck) === '[object Function]';
 }
 
 function get_date_str() {
