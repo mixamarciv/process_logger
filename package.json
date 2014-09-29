@@ -1,6 +1,8 @@
 {
   "name": "process_logger",
   "version": "0.0.1",
+  "description": "run process and write log to file with date&time",
+  "main": "index.js",
   "dependencies": {
       "iconv-lite": "*"
   }
