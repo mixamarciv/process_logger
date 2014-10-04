@@ -22,6 +22,19 @@ function process_logger(p,fn) {
   if (!p.args && p.arguments) p.args = p.arguments;
   else if (p.args && p.arguments) p.args.concat(p.arguments);
   
+  
+  var spawn = require('child_process').spawn;
+  var pr = spawn(p.run, p.args);
+  
+  if (!p.enc) p.enc = p.encoding;
+  if (!p.enc){
+    if (process.platform=='win32') p.enc = 'CP866';
+  }
+  if (p.enc){
+    pr.stdout.setEncoding(p.enc);
+    pr.stderr.setEncoding(p.enc);
+  }  
+  
   var log = {};
   if (p.__write_log_to_file) {
       var fs = require('fs');
@@ -45,8 +58,25 @@ function process_logger(p,fn) {
       }
       
       log.write('\n');
+      
+      pr.stdout.pipe(log,{ end: false });
+      pr.stderr.pipe(log,{ end: false });
   }else{
-      log.write = process.stdout.write;
+      if(isFunction(p.on_data)){
+          var Stream = require('stream');
+          var log = new Stream();
+          pr.stdout.pipe(log,{ end: false }); 
+          pr.stderr.pipe(log,{ end: false });
+          var i_call0 = i_call - 1;
+          log.on('data', function(data) {
+              p.on_data(data);
+          });
+          log.write = function(data){
+              log.emit('data',data);
+          }
+      }else{
+          log.write = function(){};
+      }
       log.end = function(){};
   }
 
@@ -55,21 +85,7 @@ function process_logger(p,fn) {
     log.write('\nstart app:'+p.run+' log:'+p.log+' args:'+util.inspect(p.args)+'\n');
   }
 
-  var spawn = require('child_process').spawn;
-  var pr = spawn(p.run, p.args);
-  
-  if (!p.enc) p.enc = p.encoding;
-  if (!p.enc){
-    if (process.platform=='win32') p.enc = 'CP866';
-  }
-  if (p.enc){
-    pr.stdout.setEncoding(p.enc);
-    pr.stderr.setEncoding(p.enc);
-  }
-  
-  pr.stdout.pipe(log,{ end: false });
-  pr.stderr.pipe(log,{ end: false });
-  
+ 
   pr.on('close', function (code) {
     if (p.debug) log.write('\nexit code: '+code);
     log.end();
