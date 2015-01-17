@@ -1,4 +1,4 @@
-kill-prev-process-app
+process_logger
 ============
 
 kills the previous process of this application
