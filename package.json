@@ -1,11 +1,22 @@
 {
   "name": "process_logger",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "run process and write log to file with date&time",
   "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mixamarciv/process_logger.git"
+  },
+  "author": {
+    "name": "mixamarciv",
+    "email": "mixamarciv@gmail.com"
+  },
+  "license": "MIT",
+  "readmeFilename": "README.md"
   "dependencies": {
       "iconv-lite": "*"
   }
 }
-
-
